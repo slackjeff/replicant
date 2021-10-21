@@ -12,6 +12,8 @@ It monitors the following items that I think are important:
 * Packages: Installed, removed and updated (today)
 * Top 10 logs size
 
+Every script is executed and outputs to a '.html file', which you can view in your local network or even over the internet.
+For internet viewing it is recommended authentication by apache or nginx.
 
 ### Example 1
 ![screen 1](screen/page1.png)
@@ -21,3 +23,12 @@ It monitors the following items that I think are important:
 
 ### Responsive mode
 ![screen 3](screen/page3.png)
+
+## Install
+git clone https://github.com/slackjeff/replicant/
+cd replicant && chmod u+x replicant
+sudo cp replicant /usr/local/bin/
+
+### Put on cron
+crontab -e
+* * * * * /usr/local/bin/replicant > /var/www/html/replicant.html

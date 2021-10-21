@@ -1,0 +1,190 @@
+#!/bin/sh
+#-------------------------------------------------------------------#
+# AUTOR  : Jefferson Carneiro
+# LICENSE: GPLV2
+#
+# Script that make simple system monitoring.
+# A password-protected html page is created in:
+# /var/www/html/replicant/
+#-------------------------------------------------------------------#
+
+#-------------------------------------------------------------------#
+#   CONF
+#-------------------------------------------------------------------#
+
+# Put your local ip
+server='192.168.1.105'
+
+# Put Ports for health check
+ports="22 80 443 6697 70"
+
+# What time for refresh webpage? in seconds.
+# Use according to cron, default is 60 = 1 minute
+refresh_page_time='60'
+
+# FOR DEV
+# don't edit here :)
+title='Replicant'
+version='1.0 Alfa'
+
+#-------------------------------------------------------------------#
+#   FUNCTIONS
+#-------------------------------------------------------------------#
+
+# html header
+header()
+{
+  #signal_favicon="$@"
+  css="
+     body { background-color: lightblue; color: black; font-family:monospace,sans-serif; max-width:1000px; margin: 0px auto; padding:0 10px; font-size: 14px;}
+     h2 {color: blue;}
+     .portopen { width: 40%; margin-bottom: 1%; padding: 0.7%; background-color: green; color: white;}
+     .portdown { width: 40%; margin-bottom: 1%; padding: 0.7%; background-color: red;}
+
+     .userson { width: 40%; background-color: gray; padding: 0.7%;}
+
+     .diskok { width: 40%; color: white; background-color: green; padding: 0.7%;}
+     .diskwarning { width: 40%; color: black; background-color: yellow; padding: 0.7%;}
+     .diskdanger { width: 40%;color: black; background-color: red; padding: 0.7%;}
+
+     pre { white-space:pre-wrap; word-wrap: break-word;} 
+     hr { margin-top: 3%; margin-bottom: 3%; border-color: gray; border-style: dotted;}
+
+     @media only screen and (max-width: 600px) {
+        body { background-color: lightblue; font-size: 13px;}
+        
+        .portopen {width: 94%; padding: 3%; margin-bottom: 3%;}
+        .portdown {width: 94%; padding: 3%; margin-bottom: 3%;}
+
+        .userson { width: 94%; background-color: gray; padding: 3%;}
+        
+        .diskok { width: 94%;color: white; background-color: green; padding: 3%;}
+        .diskwarning { width: 94%; color: black; background-color: yellow; padding: 3%;}
+        .diskdanger { width: 94%;color: black; background-color: red; padding: 3%;}
+  "
+  echo "
+  <!DOCTYPE html>
+  <html lang='eng'>
+    <head>
+      <title>${title}: $server</title>
+      <meta charset='UTF-8'>
+      <meta http-equiv="refresh" content="$refresh_page_time">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+      $css
+      </style>
+    </head>
+  <body>
+    <div id='main'>
+    <h1>$title Dashboard - $version</h1>
+    <p>$title running on $(hostname -I | sed 's/ /\n/g' | tr -s '\n' | grep -Ev '^127.0.0.1|:')</p>
+    <p><b>Last updated:</b> $(date -u)</p>
+    <hr>
+  "
+}
+
+# html footer
+footer()
+{
+  echo "</div><body/></html>"
+}
+
+# Main informations system.
+system_info()
+{
+  . /etc/os-release
+  echo "<h2>$(hostname)</h2>"
+  echo "<b>Distribuition:</b> "$PRETTY_NAME" </br>"
+  echo "<b>Kernel:</b> "$(uname -r)"<br>"
+  echo "<b>Total Packages:</b> "$(dpkg-query -f '${binary:Package}\n' -W | wc -l)" packages<br>"
+  echo "<b>Uptime:</b> "$(uptime -p | sed 's/up//')"</p>"
+
+  echo "<hr>"
+}
+
+# Ports check
+check_ports()
+{
+    echo "<h2>Ports</h2>"
+    seconds=1
+    for port in $ports; do
+        if nc -w $seconds -z $server $port 2>/dev/null; then
+            echo "<div class='portopen'>$port is [OPEN]</div>"
+        else
+            echo "<div class='portdown'>$port is [CLOSED] Check it.</div>"
+        fi
+    done
+    echo "<hr>"
+}
+
+# Information disk
+disk_info()
+{
+    rootdisk=$(df -h 2>/dev/null | grep '/$' | awk '{print $1}')
+    disksizetotal=$(df -H 2>/dev/null | grep -vE "^Filesystem|tmpfs|none|cdrom|udev")
+    #disksize=$(df -h 2>/dev/null | grep '/$' | awk '{print $5}' | tr -d %)
+    disksize=78
+    echo "<h2>Disk</h2>"
+    if [ "$disksize" -le 50 ]; then
+        echo "<p class='diskok'>GREAT: $rootdisk ${disksize}% used.</p>"
+    elif [ "$disksize" -lt 90 ]; then
+        echo "<p class='diskwarning''>WARNING: $rootdisk ${disksize}% used.</p>"
+    elif [ "$disksize" -ge 90 ]; then
+        echo "<p class='diskdanger'>DANGER: $rootdisk ${disksize}% used!!!!</p>"
+    fi
+
+    echo "<pre>$disksizetotal</pre>"
+
+    echo "<hr>"
+
+}
+
+# Users logged in system
+logged_users()
+{
+    echo "<h2>Who is online?</h2>"
+    echo "<p class='userson'>Have <b>\"$(who | wc -l)\"</b> ONLINE USERS</p>"
+    echo "<pre>$(who -s)</pre>"
+
+    echo "<hr>"
+}
+
+log_size()
+{
+    echo "<h2>TOP 10 log size</h2>"
+    echo "<pre>$(du -hs /var/log/* | sort -h | tail -n 10)</pre>"
+
+    echo "<hr>"
+}
+
+ufw_check()
+{
+    echo "<h2>ufw </h2>"
+}
+
+packages_installed_removed_upgrade()
+{
+    installed=$(grep -E "^$(date +%Y-%m-%d).*installed.*" /var/log/dpkg.log | sed '/half/d' | wc -l)
+    removed=$(grep -E "^$(date +%Y-%m-%d).*remove\s+[a-z]+" /var/log/dpkg.log | wc -l)
+    upgraded=$(grep -E "^$(date +%Y-%m-%d).*upgrade.*" /var/log/dpkg.log | wc -l)
+
+    echo "<h2>Packages today</h2>"
+    echo "<p><b>$installed</b> packages installed today</p>"
+    echo "<p><b>$upgraded</b> packages updated today</p>"
+    echo "<p><b>$removed</b> packages removed today</p>"
+
+    echo "<hr>"
+}
+
+
+
+header
+
+system_info
+check_ports
+disk_info
+packages_installed_removed_upgrade
+logged_users
+log_size
+
+footer

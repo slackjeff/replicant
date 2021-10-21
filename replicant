@@ -122,8 +122,7 @@ disk_info()
 {
     rootdisk=$(df -h 2>/dev/null | grep '/$' | awk '{print $1}')
     disksizetotal=$(df -H 2>/dev/null | grep -vE "^Filesystem|tmpfs|none|cdrom|udev")
-    #disksize=$(df -h 2>/dev/null | grep '/$' | awk '{print $5}' | tr -d %)
-    disksize=78
+    disksize=$(df -h 2>/dev/null | grep '/$' | awk '{print $5}' | tr -d %)
     echo "<h2>Disk</h2>"
     if [ "$disksize" -le 50 ]; then
         echo "<p class='diskok'>GREAT: $rootdisk ${disksize}% used.</p>"

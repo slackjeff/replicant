@@ -39,7 +39,7 @@ For internet viewing it is recommended authentication by apache or nginx.
 `mkdir -v /var/www/html/replicant`
 
 ### Put on cron
-`* * * * * /usr/local/bin/replicant > /var/www/html/replicant.html`
+`* * * * * /usr/local/bin/replicant > /var/www/html/index.html`
 
 ## If you need authentication on apache
 ### Install apache2-utils

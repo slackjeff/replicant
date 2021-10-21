@@ -15,6 +15,9 @@ It monitors the following items that I think are important:
 Every script is executed and outputs to a '.html file', which you can view in your local network or even over the internet.
 For internet viewing it is recommended authentication by apache or nginx.
 
+## Note
+Replicant does not work with more than one server, it was created this way for simple monitoring. Maybe in the future we can add support for monitoring more than one server
+
 ### Example 1
 ![screen 1](screen/page1.png)
 

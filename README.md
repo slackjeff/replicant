@@ -35,5 +35,5 @@ Copy script to /usr/local/bin/
 `sudo cp replicant /usr/local/bin/`
 
 ### Put on cron
-`crontab -e`
-`* * * * * /usr/local/bin/replicant > /var/www/html/replicant.html`
+`crontab -e
+* * * * * /usr/local/bin/replicant > /var/www/html/replicant.html`

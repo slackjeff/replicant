@@ -35,5 +35,25 @@ For internet viewing it is recommended authentication by apache or nginx.
 ### Copy script to /usr/local/bin/
 `sudo cp replicant /usr/local/bin/`
 
+### Create directory on /var/www/html
+`mkdir -v /var/www/html/replicant`
+
 ### Put on cron
 `* * * * * /usr/local/bin/replicant > /var/www/html/replicant.html`
+
+## If you need authentication on apache
+### Install apache2-utils
+`sudo apt-get install apache2-utils`
+
+### Create user and password for apache
+`htpasswd -B -c /etc/apache2/.htpasswd YourUsername`
+
+### Add on /etc/apache2/apache2.conf
+`
+<Directory "/var/www/html/replicant/">
+    AuthType Basic
+    AuthName "Restricted Content"
+    AuthUserFile /etc/apache2/.htpasswd
+    Require valid-user
+</Directory>
+`

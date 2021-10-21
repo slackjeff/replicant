@@ -24,12 +24,14 @@ For internet viewing it is recommended authentication by apache or nginx.
 ### Responsive mode
 ![screen 3](screen/page3.png)
 
-## Install
+## Install and test
 Clone repo
 `git clone https://github.com/slackjeff/replicant/`
+
 Enter directory repo and give permission on script.
 `cd replicant && chmod u+x replicant`
 
+Copy script to /usr/local/bin/
 `sudo cp replicant /usr/local/bin/`
 
 ### Put on cron

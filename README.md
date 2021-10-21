@@ -25,8 +25,11 @@ For internet viewing it is recommended authentication by apache or nginx.
 ![screen 3](screen/page3.png)
 
 ## Install
+Clone repo
 `git clone https://github.com/slackjeff/replicant/`
+Enter directory repo and give permission on script.
 `cd replicant && chmod u+x replicant`
+
 `sudo cp replicant /usr/local/bin/`
 
 ### Put on cron
